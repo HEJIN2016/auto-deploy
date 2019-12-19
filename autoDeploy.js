@@ -4,7 +4,7 @@ const Config = {
   username: 'root', // ssh登录用户
   password: '1234', // 密码
   privateKey: null, // 私钥，私钥与密码二选一
-
+  // privateKey: fs.readFileSync('myKey.key'),
   catalog: '/var/www', // 前端文件压缩目录
   buildDist: 'dist', // 前端文件打包之后的目录，默认dist
   buildCommand: 'npm run build', // 打包前端文件的命令
