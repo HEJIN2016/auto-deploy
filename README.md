@@ -1,9 +1,13 @@
-# auto-deploy
+在常规的前端项目中，部署项目需要经过本地build，压缩文件，将压缩包上传至服务器并解压文件等步骤，过程较为繁琐。所以本人编写了一个nodejs脚本，用来告别手动上传的过程，配置使用简单，实现前端一键自动化部署。
+ 
+
 
 > 前端自动化编译与部署脚本
 当前支持window上传至linux服务器以及linux上传至linux服务器
-
-### 使用方法
+如果您觉得对您有帮助 点个赞或者去GitHub点个star ，非常感谢
+[项目git地址]([https://github.com/HEJIN2016/auto-deploy](https://github.com/HEJIN2016/auto-deploy)
+)
+#### 使用步骤
 1.下载项目，```git clone https://github.com/HEJIN2016/auto-deploy.git```
 将项目中autoDeploy.js文件拷贝至前端项目根目录下（与前端打包完之后的dist目录同级）
 
@@ -31,5 +35,10 @@ const Config = {
 
 4.执行上传命令
 ``` node autoDeploy.js```，耐心等待部署完毕，建议将```node autoDeploy.js```命令添加进入package.json中
-  
-  
+
+#### 部署基本流程介绍
+1.执行build命令
+2.压缩打包之后的文件
+3.ssh连接服务器并上传文件
+4.解压上传的文件
+5.删除本地的压缩包文件，部署完毕
