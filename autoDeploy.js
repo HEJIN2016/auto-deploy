@@ -144,7 +144,7 @@ class SSH {
       // 数据源是否耗尽
       output.on('end', function() {
         console.error('----压缩失败，数据源已耗尽----');
-        reject();
+        reject({ success: false });
       });
       // 存档警告
       archive.on('warning', function(err) {
@@ -153,13 +153,13 @@ class SSH {
         } else {
           console.error('----压缩失败----');
         }
-        reject(err);
+        reject({ success: false, error: err });
       });
       // 存档出错
       archive.on('error', function(err) {
         console.error('----存档错误，压缩失败----');
         console.error(err);
-        reject(err);
+        reject({ success: false, error: err });
       });
       // 通过管道方法将输出流存档到文件
       archive.pipe(output);
