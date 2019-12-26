@@ -3,7 +3,7 @@
 
 
 > 前端自动化编译与部署脚本
-当前支持window上传至linux服务器以及linux上传至linux服务器
+当前支持window上传至linux服务器以及linux上传至linux服务器，并且支持通过跳板机连接目标机器
 如果您觉得对您有帮助 点个赞或者去GitHub点个star ，非常感谢
 [项目git地址]([https://github.com/HEJIN2016/auto-deploy](https://github.com/HEJIN2016/auto-deploy)
 )
@@ -20,11 +20,19 @@
 在autoDeploy.js中，找到首行的对象Config，配置相关参数，配置如下
 ```js
 const Config = {
-  host: 'test.com', // 服务器ip地址或域名
-  port: 22, // 服务器ssh连接端口号
+  host: 'test.com', // 服务器或跳板机ip地址（域名）
+  port: 22, // 服务器或跳板机ssh连接端口号
   username: 'root', // ssh登录用户
   password: '', // 密码
   // privateKey: fs.readFileSync('myKey.key'), // 私钥，私钥与密码二选一
+  
+  // ssh连接跳转至目标机配置，如无需跳转请注释掉该配置
+  agent: {
+    host: '10.186.77.223',
+    port: 22,
+    username: "root",
+    password: ""
+  },
 
   catalog: '/var/www/test', // 前端文件压缩目录，请勿以/符号结尾
   buildDist: 'dist', // 前端文件打包之后的目录，默认dist

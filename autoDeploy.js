@@ -1,11 +1,20 @@
 const Config = {
-  host: 'test.com', // 服务器ip地址或域名
+  host: 'test.cn', // 服务器ip地址或域名
   port: 22, // 服务器ssh连接端口号
   username: 'root', // ssh登录用户
-  password: '1234', // 密码
+  password: '', // 密码
   privateKey: null, // 私钥，私钥与密码二选一
-  // privateKey: fs.readFileSync('myKey.key'),
-  catalog: '/var/www', // 前端文件压缩目录
+
+  // ssh连接跳转至目标机配置，如无需跳转请注释掉该配置
+  // agent: {
+  //   host: '10.186.77.223',
+  //   port: 22,
+  //   username: "root",
+  //   password: ""
+  // },
+
+  catalog: '/usr/share/nginx/op-web/dist', // 前端文件压缩目录
+  // catalog: '/var/www/test', // 前端文件压缩目录
   buildDist: 'dist', // 前端文件打包之后的目录，默认dist
   buildCommand: 'npm run build', // 打包前端文件的命令
   readyTimeout: 20000 // ssh连接超时时间
@@ -17,26 +26,72 @@ const archiver = require('archiver');
 const fs = require('fs');
 const Client = require("ssh2").Client;
 
-
 // 前端打包文件的目录
 const dir = path.resolve(__dirname, Config.buildDist);
 
 
 class SSH {
-  constructor ({ host, port, username, password, privateKey }) {
+  constructor ({ host, port, username, password, privateKey, agent }) {
     this.server = {
       host, port, username, password, privateKey
     };
-    this.conn = new Client();
+
+    this.hasAgent = agent&&agent.host&&agent.port&&agent.username;
+    if (this.hasAgent) {
+      this.connAgent = new Client(); // 连接跳板机
+      this.conn = new Client(); // 连接目标机
+      this.agent = agent;
+    } else {
+      this.conn = new Client();
+    }
   }
 
   // 连接服务器
   connectServer () {
     return new Promise((resolve, reject) => {
-      this.conn.on("ready", ()=>{
-        resolve({
-          success: true
-        });
+      let conn = this.conn;
+      if (this.hasAgent) {
+        conn = this.connAgent;
+      }
+      conn.on("ready", ()=>{
+        if (this.hasAgent) {
+          // Alternatively, you could use netcat or socat with exec() instead of
+          // forwardOut()
+          console.log('----连接跳板机成功----');
+          conn.forwardOut('127.0.0.1', 12345, this.agent.host, this.agent.port, (err, stream)=> {
+            if (err) {
+              conn.end();
+              reject({
+                success: false,
+                error: err
+              });
+            }
+            // 连接目标机
+            this.conn.on('ready', ()=> {
+              console.log('----连接目标机成功----');
+              resolve({
+                success: true
+              });
+            }).on('error', (err)=>{
+              reject({
+                success: false,
+                error: err
+              });
+            }).on('end', ()=> {
+              console.log("target ssh connect end!");
+            }).on('close', (had_error)=>{
+              console.log("target ssh connect close");
+            }).connect({
+              sock: stream,
+              username: this.agent.username,
+              password: this.agent.password,
+            });
+          });
+        } else {
+          resolve({
+            success: true
+          });
+        }
       }).on('error', (err)=>{
         reject({
           success: false,
@@ -104,6 +159,9 @@ class SSH {
   // 结束连接
   endConn () {
     this.conn.end();
+    if (this.connAgent) {
+      this.connAgent.end();
+    }
     console.log('----SSH连接已关闭----');
   }
 
@@ -144,7 +202,7 @@ class SSH {
       // 数据源是否耗尽
       output.on('end', function() {
         console.error('----压缩失败，数据源已耗尽----');
-        reject({ success: false });
+        reject();
       });
       // 存档警告
       archive.on('warning', function(err) {
@@ -153,13 +211,13 @@ class SSH {
         } else {
           console.error('----压缩失败----');
         }
-        reject({ success: false, error: err });
+        reject(err);
       });
       // 存档出错
       archive.on('error', function(err) {
         console.error('----存档错误，压缩失败----');
         console.error(err);
-        reject({ success: false, error: err });
+        reject(err);
       });
       // 通过管道方法将输出流存档到文件
       archive.pipe(output);
