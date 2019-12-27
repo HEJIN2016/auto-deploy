@@ -149,7 +149,10 @@ class SSH {
           }).on('data', function (data) {
             console.log(data.toString());
           }).stderr.on('data', function (data) {
-            console.log(data.toString());
+            resolve({
+              success: false,
+              error: data.toString()
+            });
           });
         }
       });
@@ -322,11 +325,11 @@ function stopProgress(sshCon, fileName, notEnd) {
   }
   console.log('----上传文件成功，开始解压文件----');
 
-  let zipRes = await sshCon.execSsh(`unzip -o ${Config.catalog + '/' + fileName} -d ${Config.catalog}`).catch((e)=>{
-    console.error(e);
-  });
+  let zipRes = await sshCon.execSsh(`unzip -o ${Config.catalog + '/' + fileName} -d ${Config.catalog}`)
+    .catch((e)=>{});
   if (!zipRes || !zipRes.success) {
     console.error('----解压文件失败，请手动解压zip文件----');
+    console.error(`----错误原因：${zipRes.error}----`);
     stopProgress(sshCon, fileName);
     return false;
   }
