@@ -240,21 +240,22 @@ class SSH {
     return new Promise((resolve, reject) => {
       exec(Config.buildCommand, async (error, stdout, stderr) => {
         if (error) {
-          console.error(error);
+          console.error("error:", error);
           reject({
             error,
             success: false
           });
-        } else if (stderr) {
-          console.error(stderr);
-          reject({
-            error,
-            success: false
-          });
-        } else {
+        } else if (stdout) {
+          console.error("stdout:", stdout);
           resolve({
             stdout,
             success: true
+          });
+        } else {
+          console.error("stderr:", stderr);
+          reject({
+            error: stderr,
+            success: false
           });
         }
       });
