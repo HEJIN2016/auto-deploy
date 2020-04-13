@@ -8,7 +8,10 @@
 [项目git地址]([https://github.com/HEJIN2016/auto-deploy](https://github.com/HEJIN2016/auto-deploy)
 )
 
-注意：使用前需保证服务端安装了unzip
+注意：
+    
+    1.使用前需保证服务端安装了unzip（安装方法 apt-get install unzip）
+    2.暂只支持上传至linux ubuntu/centos等服务器
 #### 使用步骤
 1.下载项目，```git clone https://github.com/HEJIN2016/auto-deploy.git```
 将项目中autoDeploy.js文件拷贝至前端项目根目录下（与前端打包完之后的dist目录同级）
@@ -19,27 +22,44 @@
 ```
 
 3.配置前端工程部署服务器用户密码等
-在autoDeploy.js中，找到首行的对象Config，配置相关参数，配置如下
+在autoDeploy.js中，找到首行的环境对象dev、test、和pro，分别代表开发、测试、线上环境，配置相关参数，然后配置Config中的其他参数，配置如下
 ```js
-const Config = {
-  host: 'test.com', // 服务器或跳板机ip地址（域名）
-  port: 22, // 服务器或跳板机ssh连接端口号
-  username: 'root', // ssh登录用户
+// 开发环境
+const dev = {
+  host: 'dev.test.cn', // 服务器ip地址或域名
   password: '', // 密码
-  // privateKey: fs.readFileSync('myKey.key'), // 私钥，私钥与密码二选一
-  
-  // ssh连接跳转至目标机配置，如无需跳转请注释掉该配置
-  agent: {
-    host: '10.186.77.223',
-    port: 22,
-    username: "root",
-    password: ""
-  },
+  catalog: '/var/www/test', // 前端文件压缩目录
+  port: 22, // 服务器ssh连接端口号
+  username: 'root', // ssh登录用户
+  privateKey: null, // 私钥，私钥与密码二选一
+};
+// 测试环境
+const test = {
+  host: 'test.test.cn', // 服务器ip地址或域名
+  password: '', // 密码
+  catalog: '/var/www/test', // 前端文件压缩目录
+  port: 22, // 服务器ssh连接端口号
+  username: 'root', // ssh登录用户
+  privateKey: null, // 私钥，私钥与密码二选一
+};
+// 线上环境
+const pro = {
+  host: 'test.test.cn', // 服务器ip地址或域名
+  password: '', // 密码，请勿将此密码上传至git服务器
+  catalog: '/var/www/test', // 前端文件压缩目录
+  port: 22, // 服务器ssh连接端口号
+  username: 'root', // ssh登录用户
+  privateKey: null, // 私钥，私钥与密码二选一
+};
+// 全局配置
+const Config = {
+  // publishEnv: pro,
+  publishEnv: [ test ], // 发布环境，可填写多个，也可只填写一个
 
-  catalog: '/var/www/test', // 前端文件压缩目录，请勿以/符号结尾
   buildDist: 'dist', // 前端文件打包之后的目录，默认dist
-  buildCommand: 'npm run build', // 打包前端文件的命令，默认为npm run build
-  readyTimeout: 20000 // ssh连接超时时间
+  buildCommand: 'npm run build', // 打包前端文件的命令
+  readyTimeout: 20000, // ssh连接超时时间
+  deleteFile: true // 是否删除线上上传的dist压缩包
 };
 ```
 
