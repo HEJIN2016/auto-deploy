@@ -10,7 +10,7 @@
 
 注意：
     
-    1.使用前需保证服务端安装了unzip（安装方法 apt-get install unzip）
+    1.使用前需保证服务端安装了unzip（安装方法 apt-get install unzip，或者yum install unzip）
     2.暂只支持上传至linux ubuntu/centos等服务器
 #### 使用步骤
 1.下载项目，```git clone https://github.com/HEJIN2016/auto-deploy.git```
